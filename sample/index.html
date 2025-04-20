@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Application JSP Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: white;
+        }
+        table {
+            border: 0;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .food-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        #searchResults {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        input, button {
+            padding: 6px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body bgcolor=white>
+
+<table border="0">
+<tr>
+<td align=center>
+<img src="images/tomcat.gif">
+</td>
+</tr>
+</table>
+
+<div>
+    <label for="searchInput">Search USDA Food Database: </label>
+    <input type="text" id="searchInput" placeholder="Enter food name (default: apple)">
+    <button onclick="searchFoods()">Search</button>
+</div>
+
+<div id="searchResults">
+    <!-- Search results will be displayed here -->
+</div>
+
+<script>
+function searchFoods() {
+    const resultDiv = document.getElementById('searchResults');
+    resultDiv.innerHTML = '<p>Loading...</p>';
+    
+    const searchTerm = document.getElementById('searchInput').value || 'apple';
+    const API_KEY = "dctfXgFbUaCfb0s1WeDSmRKjjAoxc7iMRaz2nbxl";
+    const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${searchTerm}&api_key=${API_KEY}`;
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const foods = data.foods;
+            if (foods && foods.length > 0) {
+                let html = '<h3>Search Results:</h3>';
+                foods.slice(0, 10).forEach(food => {
+                    html += `<div class="food-item">- ${food.description}</div>`;
+                });
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = '<p>No results found</p>';
+            }
+        })
+        .catch(error => {
+            resultDiv.innerHTML = '<p>Error fetching data: ' + error.message + '</p>';
+        });
+}
+</script>
+
+</body>
+</html>
