@@ -109,6 +109,11 @@
             <h2>Weekly Meal Plan</h2>
             <div id="weeklyPlan"></div>
         </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button style="padding: 10px 20px;" onclick="saveMealPlan()">💾 Save Meal Plan</button>
+        </div>
+
     </div>
 
     <script>
@@ -198,6 +203,27 @@
             
             // Save to localStorage
             localStorage.setItem('mealPlanData', JSON.stringify(mealPlanData));
+        }
+        
+        function saveMealPlan() {
+            fetch('saveMealPlan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(mealPlanData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Meal plan saved!');
+                    } else {
+                        alert('Failed to save meal plan.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while saving.');
+                });
         }
 
         // Load saved meal plan data on page load
