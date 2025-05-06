@@ -83,7 +83,7 @@
 </head>
 <body>
 <div class="header">
-    <img src="/sample/images/download.gif" alt="Tomcat Logo">
+    <img src="/sample/images/tomcat.gif" alt="Tomcat Logo">
     <div>
         <h1>Food Data Search Application</h1>
         <p>This application uses the USDA Food Data Central API to search for food information.</p>
