@@ -96,165 +96,36 @@
 </head>
 <body>
 
-<%!
-
-    // Register user information and return the generated user ID
-    private int registerUserInfo(String name, int age, float weight, float height, String activityLevel) {
-        String sql = "INSERT INTO Users (Name, Age, Weight, Height, ActivityLevel) VALUES (?, ?, ?, ?, ?)";
-        int newUserID = -1;
-        Connection conn = null;
-
-        try {
-            conn = DBUtil.getConnection();
-            if (conn != null) {
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                stmt.setString(1, name);
-                stmt.setInt(2, age);
-                stmt.setFloat(3, weight);
-                stmt.setFloat(4, height);
-                stmt.setString(5, activityLevel);
-
-                int affectedRows = stmt.executeUpdate();
-
-                if (affectedRows > 0) {
-                    ResultSet generatedKeys = stmt.getGeneratedKeys();
-                    if (generatedKeys.next()) {
-                        newUserID = generatedKeys.getInt(1);
-                    }
-                    generatedKeys.close();
-                }
-                stmt.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return newUserID;
-    }
-
-    // Register user credentials
-    private boolean registerUserCredentials(int userID, String password) {
-        String sql = "INSERT INTO user_credentials (UserID, Password) VALUES (?, ?)";
-        boolean success = false;
-        Connection conn = null;
-
-        try {
-            conn = DBUtil.getConnection();
-            if (conn != null) {
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setInt(1, userID);
-                // In a real application, NEVER store plain text passwords!
-                // Use a secure hashing algorithm like BCrypt
-                stmt.setString(2, password);
-
-                success = stmt.executeUpdate() > 0;
-                stmt.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return success;
-    }
-
-    // Delete user if credential registration fails
-    private void deleteUser(int userID) {
-        String sql = "DELETE FROM Users WHERE UserID = ?";
-        Connection conn = null;
-
-        try {
-            conn = DBUtil.getConnection();
-            if (conn != null) {
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setInt(1, userID);
-                stmt.executeUpdate();
-                stmt.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-%>
-
-<%
-    String errorMessage = "";
-    String successMessage = "";
-
-    // Process the form submission
-    if ("POST".equalsIgnoreCase(request.getMethod())) {
-        try {
-            // Get form parameters
-            String name = request.getParameter("name");
-            String password = request.getParameter("password");
-            int age = Integer.parseInt(request.getParameter("age"));
-            float weight = Float.parseFloat(request.getParameter("weight"));
-            float height = Float.parseFloat(request.getParameter("height"));
-            String activityLevel = request.getParameter("activityLevel");
-
-            // First, create the user in the Users table
-            int userID = registerUserInfo(name, age, weight, height, activityLevel);
-
-            if (userID > 0) {
-                // User info saved successfully, now save credentials
-                if (registerUserCredentials(userID, password)) {
-                    // Everything successful
-                    successMessage = "Registration successful! You can now login.";
-                } else {
-                    // If credential saving fails, delete the user entry
-                    deleteUser(userID);
-                    errorMessage = "Registration failed. Please try again! (cred)";
-                }
-            } else {
-                // User creation failed
-                errorMessage = "Registration failed. Please try again! (user)";
-            }
-        } catch (NumberFormatException e) {
-            errorMessage = "Invalid input. Please check your data and try again.";
-        } catch (Exception e) {
-            errorMessage = "An error occurred. Please try again!";
-            e.printStackTrace();
-        }
-    }
-%>
-
 <div class="container">
     <h2>Create a New Account</h2>
 
-    <% if (!successMessage.isEmpty()) { %>
-    <div class="message success">
-        <%= successMessage %>
-        <p>Please <a href="login.jsp">login here</a> to continue.</p>
-    </div>
-    <% } else { %>
-    <% if (!errorMessage.isEmpty()) { %>
-    <div class="message error">
-        <%= errorMessage %>
-    </div>
-    <% } %>
+    <%
+        String error = request.getParameter("error");
+        String success = request.getParameter("success");
 
-    <form method="post" action="registration.jsp">
+        if ("username_taken".equals(error)) {
+    %>
+    <div class="message error">That username is already taken. Please choose another.</div>
+    <%
+    } else if ("true".equals(error)) {
+    %>
+    <div class="message error">Registration failed. Please try again.</div>
+    <%
+        }
+
+        if ("register".equals(success)) {
+    %>
+    <div class="message success">Registration successful! Please <a href="login.jsp">login here</a>.</div>
+    <%
+        }
+    %>
+
+
+    <form method="post" action="registration">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
         <div class="form-group">
             <label for="name">Full Name:</label>
             <input type="text" id="name" name="name" required>
@@ -291,7 +162,6 @@
     <div class="link">
         <p>Already have an account? <a href="login.jsp">Login here</a></p>
     </div>
-    <% } %>
 </div>
 </body>
 </html>

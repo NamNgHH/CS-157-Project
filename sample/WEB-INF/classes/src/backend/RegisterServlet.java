@@ -15,6 +15,7 @@ public class RegisterServlet extends HttpServlet {
 
         // Get form parameters
         String name = request.getParameter("name");
+        String username = request.getParameter("username");
         String password = request.getParameter("password");
         int age;
         float weight, height;
@@ -29,12 +30,17 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
+        if (isUsernameTaken(username)) {
+            response.sendRedirect("register.jsp?error=username_taken");
+            return;
+        }
+
         // First, create the user in the Users table
         int userID = registerUserInfo(name, age, weight, height, activityLevel);
 
         if (userID > 0) {
             // User info saved successfully, now save credentials
-            if (registerUserCredentials(userID, password)) {
+            if (registerUserCredentials(userID, username, password)) {
                 // Everything successful, redirect to login page
                 response.sendRedirect("login.jsp?success=register");
             } else {
@@ -88,20 +94,21 @@ public class RegisterServlet extends HttpServlet {
         return newUserID;
     }
 
-    private boolean registerUserCredentials(int userID, String password) {
-        String sql = "INSERT INTO user_credentials (UserID, Password) VALUES (?, ?)";
+    private boolean registerUserCredentials(int userID, String username, String password) {
+        String sql = "INSERT INTO user_credentials (UserID, Username, Password) VALUES (?, ?, ?)";
         boolean success = false;
 
         Connection conn = DBUtil.getConnection();
         if (conn == null) {
-            return false; // Handle null connection
+            return false;
         }
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userID);
+            stmt.setString(2, username);
             // In a real application, NEVER store plain text passwords!
             // Use a secure hashing algorithm like BCrypt
-            stmt.setString(2, password);
+            stmt.setString(3, password);
 
             success = stmt.executeUpdate() > 0;
             conn.close();
@@ -115,6 +122,20 @@ public class RegisterServlet extends HttpServlet {
         }
 
         return success;
+    }
+
+    private boolean isUsernameTaken(String username) {
+        String sql = "SELECT 1 FROM user_credentials WHERE Username = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true;
+        }
     }
 
     private void deleteUser(int userID) {
@@ -139,4 +160,3 @@ public class RegisterServlet extends HttpServlet {
         }
     }
 }
-

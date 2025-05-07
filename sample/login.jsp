@@ -103,8 +103,6 @@
         <h3>Login to Your Account</h3>
         <form action="login" method="post">
             <div class="form-group">
-                <label for="userID">User ID:</label>
-                <input type="text" id="userID" name="userID" required>
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>

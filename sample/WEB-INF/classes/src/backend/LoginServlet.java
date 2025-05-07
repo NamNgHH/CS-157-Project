@@ -12,18 +12,11 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int userID;
-        String password;
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        int userID = authenticateUser(username, password);
 
-        try {
-            userID = Integer.parseInt(request.getParameter("userID"));
-            password = request.getParameter("password");
-        } catch (NumberFormatException e) {
-            response.sendRedirect("login.jsp?error=true");
-            return;
-        }
-
-        if (authenticateUser(userID, password)) {
+        if (userID > 0) {
             // Create session for user
             HttpSession session = request.getSession();
             session.setAttribute("userID", userID);
@@ -43,22 +36,24 @@ public class LoginServlet extends HttpServlet {
         }
     }
 
-    private boolean authenticateUser(int userID, String password) {
-        String sql = "SELECT * FROM user_credentials WHERE UserID = ? AND Password = ?";
+    private int authenticateUser(String username, String password) {
+        String sql = "SELECT UserID FROM user_credentials WHERE Username = ? AND Password = ?";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, userID);
-            stmt.setString(2, password); // In a real app, use password hashing!
+            stmt.setString(1, username);
+            stmt.setString(2, password); // For production, use hashed passwords
 
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next(); // If results exist
+                if (rs.next()) {
+                    return rs.getInt("UserID");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        return -1;
     }
 
     private User getUserDetails(int userID) {
@@ -71,9 +66,14 @@ public class LoginServlet extends HttpServlet {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    User user = new User();
-                    user.setUserID(rs.getInt("UserID"));
-                    user.setName(rs.getString("Name"));
+                    User user = new User(
+                        rs.getInt("UserID"),
+                        rs.getString("Name"),
+                        rs.getInt("Age"),
+                        rs.getFloat("Weight"),
+                        rs.getFloat("Height"),
+                        rs.getString("ActivityLevel")
+                    );
                     return user;
                 }
             }
