@@ -96,7 +96,7 @@
 
 <div class="container">
     <div class="header">
-        <img src="/api/placeholder/80/80" alt="Fitness Tracker Logo">
+        <img src="./images/macro.gif" alt="Fitness Tracker Logo" style="width: 300px;" >
         <h2>Food & Fitness Tracker</h2>
     </div>
     <div class="form-container">
