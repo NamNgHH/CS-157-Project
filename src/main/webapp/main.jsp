@@ -8,6 +8,29 @@
             padding: 0;
             background-color: #f4f4f4;
         }
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .navbar a.active {
+            background-color: #4CAF50;
+            color: white;
+        }
         .header {
             display: flex;
             align-items: center;
@@ -82,8 +105,13 @@
     </script>
 </head>
 <body>
+<div class="navbar">
+    <a href="index.html" class="active">Home</a>
+    <a href="meal-plans.html">Meal Plans</a>
+</div>
+
 <div class="header">
-    <img src="/images/tomcat.gif" alt="Tomcat Logo">
+    <img src="/sample/images/download.gif" alt="Tomcat Logo">
     <div>
         <h1>Food Data Search Application</h1>
         <p>This application uses the USDA Food Data Central API to search for food information.</p>
