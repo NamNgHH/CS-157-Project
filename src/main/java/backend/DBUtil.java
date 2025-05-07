@@ -6,8 +6,8 @@ import java.sql.SQLException;
 
 public class DBUtil {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/fitness_db";
-    private static final String DB_USER = "root"; // or your actual username
-    private static final String DB_PASS = "Luckyher1$"; // make sure this is right!
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "Luckyher1$";
 
     static {
         try {
