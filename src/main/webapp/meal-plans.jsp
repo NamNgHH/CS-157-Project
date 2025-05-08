@@ -1,3 +1,7 @@
+<%@ page session="true" %>
+<%
+  String userName = (String) session.getAttribute("userName");
+%>
 <html>
 <head>
   <title>Meal Plans - Food Data Search Application</title>
@@ -72,9 +76,14 @@
 </head>
 <body>
 <div class="navbar">
-  <a href="index.html">Home</a>
+  <a href="index.jsp">Home</a>
   <a href="meal-plans.html" class="active">Meal Plans</a>
   <a href="diet_planner.html">Diet Planner</a>
+  <span style="float:right; color:white; padding:14px 16px;">
+        <% if (userName != null) { %>
+            Current User: <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>
+        <% } %>
+    </span>
 </div>
 
 <div class="header">
@@ -178,7 +187,7 @@
     </div>
   </div>
 
-  <p><a href="index.html">Return to food search</a> to find nutritional information for specific foods.</p>
+  <p><a href="index.jsp">Return to food search</a> to find nutritional information for specific foods.</p>
 </div>
 </body>
 </html>

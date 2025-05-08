@@ -31,7 +31,7 @@ public class LoginServlet extends HttpServlet {
                 }
 
                 // Redirect to the main application page
-                response.sendRedirect("index.html");
+                response.sendRedirect("index.jsp");
             } else {
                 // Authentication failed
                 response.sendRedirect("login.jsp?error=true");

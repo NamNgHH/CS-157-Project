@@ -36,18 +36,27 @@ public class RegisterServlet extends HttpServlet {
         }
 
         // First, create the user in the Users table
-        int userID = registerUserInfo(name, age, weight, height, activityLevel);
+        int userID = 0;
+        try {
+            userID = registerUserInfo(name, age, weight, height, activityLevel);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         if (userID > 0) {
             // User info saved successfully, now save credentials
-            if (registerUserCredentials(userID, username, password)) {
-                // Everything successful, redirect to login page
-                response.sendRedirect("login.jsp?success=register");
-            } else {
-                // If credential saving fails, we should delete the user entry
-                // to maintain database integrity
-                deleteUser(userID);
-                response.sendRedirect("register.jsp?error=true");
+            try {
+                if (registerUserCredentials(userID, username, password)) {
+                    // Everything successful, redirect to the login page
+                    response.sendRedirect("login.jsp?success=register");
+                } else {
+                    // If credential saving fails, we should delete the user entry
+                    // to maintain database integrity
+                    deleteUser(userID);
+                    response.sendRedirect("register.jsp?error=true");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         } else {
             // User creation failed
@@ -55,8 +64,8 @@ public class RegisterServlet extends HttpServlet {
         }
     }
 
-    private int registerUserInfo(String name, int age, float weight, float height, String activityLevel) {
-        String sql = "INSERT INTO Users (Name, Age, Weight, Height, ActivityLevel) VALUES (?, ?, ?, ?, ?)";
+    private int registerUserInfo(String name, int age, float weight, float height, String activityLevel) throws SQLException {
+        String sql = "INSERT INTO users (name, age, weight, height, activity_level) VALUES (?, ?, ?, ?, ?)";
         int newUserID = -1;
 
         try (Connection conn = DBUtil.getConnection();
@@ -90,7 +99,7 @@ public class RegisterServlet extends HttpServlet {
         return newUserID;
     }
 
-    private boolean registerUserCredentials(int userID, String username, String password) {
+    private boolean registerUserCredentials(int userID, String username, String password) throws SQLException {
         String sql = "INSERT INTO user_credentials (UserID, Username, Password) VALUES (?, ?, ?)";
         boolean success = false;
 
@@ -123,7 +132,7 @@ public class RegisterServlet extends HttpServlet {
         }
     }
 
-    private void deleteUser(int userID) {
+    private void deleteUser(int userID) throws SQLException {
         String sql = "DELETE FROM Users WHERE UserID = ?";
 
         try (Connection conn = DBUtil.getConnection();

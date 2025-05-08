@@ -1,3 +1,8 @@
+<%@ page session="true" %>
+<%
+    String userName = (String) session.getAttribute("userName");
+%>
+
 <html>
 <head>
     <title>Food Data Search Application</title>
@@ -69,7 +74,7 @@
 
             const searchTerm = document.getElementById('searchInput').value || 'apple';
             const API_KEY = "dctfXgFbUaCfb0s1WeDSmRKjjAoxc7iMRaz2nbxl";
-            const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${searchTerm}&pageSize=50&api_key=${API_KEY}`;
+            const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=\${searchTerm}&pageSize=50&api_key=\${API_KEY}`;
 
             fetch(url)
                 .then(response => {
@@ -100,29 +105,29 @@
 
                     // Display results
                     if (foods.length > 0) {
-                        let html = `<h3>Top 20 Results for "${searchTerm}":</h3>`;
+                        let html = `<h3>Top 20 Results for "\${searchTerm}":</h3>`;
                         html += '<div class="search-results">';
 
                         const getNutrientValue = (food, id) => {
                             const n = food.foodNutrients.find(n => n.nutrientId === id);
-                            return n ? `${n.value} ${n.unitName}` : "N/A";
+                            return n ? `\${n.value} \${n.unitName}` : "N/A";
                         };
 
                         foods.forEach(food => {
                             html += `
                 <div class="food-item">
-                    <strong>${food.description}</strong><br>
-                    Calories: ${getNutrientValue(food, 1008)} |
-                    Protein: ${getNutrientValue(food, 1003)} |
-                    Carbs: ${getNutrientValue(food, 1005)} |
-                    Fat: ${getNutrientValue(food, 1004)}
+                    <strong>\${food.description}</strong><br>
+                    Calories: \${getNutrientValue(food, 1008)} |
+                    Protein: \${getNutrientValue(food, 1003)} |
+                    Carbs: \${getNutrientValue(food, 1005)} |
+                    Fat: \${getNutrientValue(food, 1004)}
                 </div>`;
                         });
 
                         html += '</div>';
                         resultDiv.innerHTML = html;
                     } else {
-                        resultDiv.innerHTML = `<p>No complete results found for "${searchTerm}"</p>`;
+                        resultDiv.innerHTML = `<p>No complete results found for "\${searchTerm}"</p>`;
                     }
                 })
                 .catch(error => {
@@ -140,15 +145,24 @@
 </head>
 <body>
 <div class="navbar">
-    <a href="index.html" class="active">Home</a>
-    <a href="meal-plans.html">Meal Plans</a>
+    <a href="index.jsp" class="active">Home</a>
+    <a href="meal-plans.jsp">Meal Plans</a>
     <a href="diet_planner.html">Diet Planner</a>
+    <span style="float:right; color:white; padding:14px 16px;">
+        <% if (userName != null) { %>
+            Current User: <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>
+        <% } %>
+    </span>
+
 </div>
 
 <div class="header">
     <img src="./images/download.gif" alt="Tomcat Logo">
     <div>
         <h1>Food Data Search Application</h1>
+        <p style="font-size: 1.2em; font-weight: bold;">
+            Hello, <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>!
+        </p>
         <p>This application uses the USDA Food Data Central API to search for food information.</p>
     </div>
 </div>

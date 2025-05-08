@@ -117,8 +117,8 @@
 </head>
 <body>
 <div class="navbar">
-    <a href="index.html">Home</a>
-    <a href="meal-plans.html">Meal Plans</a>
+    <a href="index.jsp">Home</a>
+    <a href="meal-plans.jsp">Meal Plans</a>
     <a href="diet_planner.html" class="active">Diet Planner</a>
 </div>
 <div class="header">
@@ -182,7 +182,6 @@
 
         const searchTerm = document.getElementById('searchInput').value || 'apple';
         const API_KEY = "dctfXgFbUaCfb0s1WeDSmRKjjAoxc7iMRaz2nbxl";
-        const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${searchTerm}&api_key=${API_KEY}`;
 
         fetch(url)
             .then(response => response.json())
