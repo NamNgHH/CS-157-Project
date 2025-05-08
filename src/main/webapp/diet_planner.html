@@ -53,23 +53,13 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        .meal-plan {
-            margin: 20px 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            border-radius: 8px;
-        }
-        .day-plan {
-            margin: 15px 0;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .meal-time {
-            margin: 10px 0;
+        #searchResults {
+            margin-top: 20px;
             padding: 10px;
             background-color: #f9f9f9;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .food-item {
             padding: 8px;
@@ -85,14 +75,6 @@
             border: none;
             border-radius: 3px;
             cursor: pointer;
-        }
-        #searchResults {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            max-height: 300px;
-            overflow-y: auto;
         }
         .controls {
             margin: 20px 0;
@@ -125,57 +107,21 @@
     <img src="./images/download.gif">
     <div>
         <h1>Diet Planner</h1>
-        <p>Planned and save your own diet for the week.</p>
+        <p>Search for nutritional information about different foods.</p>
     </div>
 </div>
 <div class="content">
     <div class="container">
-
         <div class="controls">
             <input type="text" id="searchInput" placeholder="Search for food">
-            <select id="mealTime">
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-                <option value="snack">Snack</option>
-            </select>
-            <select id="daySelect">
-                <option value="monday">Monday</option>
-                <option value="tuesday">Tuesday</option>
-                <option value="wednesday">Wednesday</option>
-                <option value="thursday">Thursday</option>
-                <option value="friday">Friday</option>
-                <option value="saturday">Saturday</option>
-                <option value="sunday">Sunday</option>
-            </select>
             <button onclick="searchFoods()">Search Food</button>
         </div>
 
         <div id="searchResults"></div>
-
-        <div class="meal-plan">
-            <h2>Weekly Meal Plan</h2>
-            <div id="weeklyPlan"></div>
-        </div>
-
-        <div style="text-align: center; margin-top: 20px;">
-            <button style="padding: 10px 20px;" onclick="saveMealPlan()">💾 Save Meal Plan</button>
-        </div>
     </div>
 </div>
 
 <script>
-    // Store the meal plan data
-    let mealPlanData = {
-        monday: { breakfast: [], lunch: [], dinner: [], snack: [] },
-        tuesday: { breakfast: [], lunch: [], dinner: [], snack: [] },
-        wednesday: { breakfast: [], lunch: [], dinner: [], snack: [] },
-        thursday: { breakfast: [], lunch: [], dinner: [], snack: [] },
-        friday: { breakfast: [], lunch: [], dinner: [], snack: [] },
-        saturday: { breakfast: [], lunch: [], dinner: [], snack: [] },
-        sunday: { breakfast: [], lunch: [], dinner: [], snack: [] }
-    };
-
     function searchFoods() {
         const resultDiv = document.getElementById('searchResults');
         resultDiv.innerHTML = '<p>Loading...</p>';
@@ -192,10 +138,10 @@
                     let html = '<h3>Search Results:</h3>';
                     foods.slice(0, 10).forEach(food => {
                         html += `
-                                <div class="food-item">
-                                    <span>${food.description}</span>
-                                    <button onclick="addToMealPlan('${food.description}')">Add</button>
-                                </div>`;
+                            <div class="food-item">
+                                <span>${food.description}</span>
+                                <button onclick="showNutrition('${food.fdcId}')">View Nutrition</button>
+                            </div>`;
                     });
                     resultDiv.innerHTML = html;
                 } else {
@@ -207,80 +153,47 @@
             });
     }
 
-    function addToMealPlan(foodDescription) {
-        const day = document.getElementById('daySelect').value;
-        const mealTime = document.getElementById('mealTime').value;
-        mealPlanData[day][mealTime].push(foodDescription);
-        displayMealPlan();
-    }
+    function showNutrition(fdcId) {
+        const resultDiv = document.getElementById('searchResults');
+        resultDiv.innerHTML += '<p>Loading nutrition information...</p>';
 
-    function removeFromMealPlan(day, mealTime, index) {
-        mealPlanData[day][mealTime].splice(index, 1);
-        displayMealPlan();
-    }
+        const API_KEY = "dctfXgFbUaCfb0s1WeDSmRKjjAoxc7iMRaz2nbxl";
+        const url = `https://api.nal.usda.gov/fdc/v1/food/${fdcId}?api_key=${API_KEY}`;
 
-    function displayMealPlan() {
-        const planDiv = document.getElementById('weeklyPlan');
-        let html = '';
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                let nutritionHtml = `
+                    <div style="margin-top: 20px; padding: 15px; background-color: #fff; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3>Nutrition Information for ${data.description}</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Nutrient</th>
+                                <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">Amount</th>
+                            </tr>`;
 
-        for (const day in mealPlanData) {
-            html += `
-                    <div class="day-plan">
-                        <h3>${day.charAt(0).toUpperCase() + day.slice(1)}</h3>`;
-
-            for (const meal in mealPlanData[day]) {
-                html += `
-                        <div class="meal-time">
-                            <h4>${meal.charAt(0).toUpperCase() + meal.slice(1)}</h4>`;
-
-                mealPlanData[day][meal].forEach((food, index) => {
-                    html += `
-                            <div class="food-item">
-                                <span>${food}</span>
-                                <button onclick="removeFromMealPlan('${day}', '${meal}', ${index})">Remove</button>
-                            </div>`;
-                });
-
-                html += `</div>`;
-            }
-
-            html += `</div>`;
-        }
-
-        planDiv.innerHTML = html;
-
-        // Save to localStorage
-        localStorage.setItem('mealPlanData', JSON.stringify(mealPlanData));
-    }
-
-    function saveMealPlan() {
-        fetch('saveMealPlan', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(mealPlanData)
-        })
-            .then(response => {
-                if (response.ok) {
-                    alert('Meal plan saved!');
-                } else {
-                    alert('Failed to save meal plan.');
+                if (data.foodNutrients) {
+                    data.foodNutrients.slice(0, 15).forEach(nutrient => {
+                        if (nutrient.nutrient && nutrient.amount) {
+                            nutritionHtml += `
+                                <tr>
+                                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">${nutrient.nutrient.name}</td>
+                                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${nutrient.amount} ${nutrient.nutrient.unitName}</td>
+                                </tr>`;
+                        }
+                    });
                 }
+
+                nutritionHtml += `
+                        </table>
+                    </div>`;
+
+                resultDiv.innerHTML += nutritionHtml;
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while saving.');
+                resultDiv.innerHTML += '<p>Error fetching nutrition data: ' + error.message + '</p>';
             });
     }
-
-    // Load saved meal plan data on page load
-    window.onload = function() {
-        const savedData = localStorage.getItem('mealPlanData');
-        if (savedData) {
-            displayMealPlan();
-        }
-    };
 </script>
 </body>
 </html>
