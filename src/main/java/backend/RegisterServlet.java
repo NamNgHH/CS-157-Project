@@ -11,47 +11,44 @@ import java.sql.*;
 public class RegisterServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws ServletException, IOException {
 
-        // Get form parameters
-        String name = request.getParameter("name");
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        int age;
-        float weight, height;
-        String activityLevel = request.getParameter("activityLevel");
+            // Get form parameters
+            String name = request.getParameter("name");
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            int age;
+            float weight, height;
+            String activityLevel = request.getParameter("activityLevel");
 
-        try {
-            age = Integer.parseInt(request.getParameter("age"));
-            weight = Float.parseFloat(request.getParameter("weight"));
-            height = Float.parseFloat(request.getParameter("height"));
-        } catch (NumberFormatException e) {
-            response.sendRedirect("register.jsp?error=true");
-            return;
-        }
-
-        if (isUsernameTaken(username)) {
-            response.sendRedirect("register.jsp?error=username_taken");
-            return;
-        }
-
-        // First, create the user in the Users table
-        int userID = registerUserInfo(name, age, weight, height, activityLevel);
-
-        if (userID > 0) {
-            // User info saved successfully, now save credentials
-            if (registerUserCredentials(userID, username, password)) {
-                // Everything successful, redirect to login page
-                response.sendRedirect("login.jsp?success=register");
-            } else {
-                // If credential saving fails, we should delete the user entry
-                // to maintain database integrity
-                deleteUser(userID);
-                response.sendRedirect("register.jsp?error=true");
+            try {
+                age = Integer.parseInt(request.getParameter("age"));
+                weight = Float.parseFloat(request.getParameter("weight"));
+                height = Float.parseFloat(request.getParameter("height"));
+            } catch (NumberFormatException e) {
+                response.sendRedirect("registration.jsp?error=true");
+                return;
             }
-        } else {
-            // User creation failed
-            response.sendRedirect("register.jsp?error=true");
+
+            if (isUsernameTaken(username)) {
+                response.sendRedirect("registration.jsp?error=username_taken");
+                return;
+            }
+
+            int userID = registerUserInfo(name, age, weight, height, activityLevel);
+
+            if (userID > 0) {
+                if (registerUserCredentials(userID, username, password)) {
+                    System.out.println("Register user credentials succeeded!");
+                    response.sendRedirect("login.jsp?success=register");
+                } else {
+                    System.out.println("Register user credentials failed!");
+                    deleteUser(userID);
+                    response.sendRedirect("registration.jsp?error=true");
+                }
+            } else {
+                System.out.println("Register user credentials failed miserably!");
+                response.sendRedirect("registration.jsp?error=true");
         }
     }
 
@@ -74,8 +71,13 @@ public class RegisterServlet extends HttpServlet {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         newUserID = generatedKeys.getInt(1);
+                        System.out.println("Generated UserID: " + newUserID); // DEBUG
+                    } else {
+                        System.out.println("No key generated!");
                     }
                 }
+            } else {
+                System.out.println("Insert into Users failed!");
             }
 
         } catch (SQLException e) {

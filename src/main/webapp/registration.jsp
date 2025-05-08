@@ -131,7 +131,7 @@
     %>
 
 
-    <form method="post" action="registration">
+    <form action="registration" method="POST">
         <div class="form-group">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
@@ -166,7 +166,9 @@
                 <option value="Extra Active">Extra Active (very hard exercise & physical job)</option>
             </select>
         </div>
-        <button type="submit" class="btn">Register</button>
+        <div class="form-group">
+            <button type="submit" class="btn">Register</button>
+        </div>
     </form>
 
     <div class="link">
