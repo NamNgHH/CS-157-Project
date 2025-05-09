@@ -1,8 +1,6 @@
 <%@ page session="true" %>
-<%@ page import="backend.DBUtil" %>
-<%@ page import="java.sql.Connection" %>
-<%@ page import="java.sql.ResultSet" %>
-<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="backend.UserDAO" %>
+<%@ page import="backend.User" %>
 <%
     String userName = null;
     int age = 0;
@@ -11,37 +9,29 @@
     String activityLevel = null;
     float bmr = 0;
     float dailyGoal = 0;
-
     try {
         int userID = (Integer) session.getAttribute("userID");
-        String sql = "SELECT * FROM users WHERE userID=?";
-        Connection conn = DBUtil.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setInt(1, userID);
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            userName = rs.getString("name");
-            age = rs.getInt("age");
-            weight = rs.getFloat("weight");
-            height = rs.getFloat("height");
-            activityLevel = rs.getString("activityLevel");
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUser(userID);
+        userName = user.getName();
+        age = user.getAge();
+        weight = user.getWeight();
+        height = user.getHeight();
+        activityLevel = user.getActivityLevel();
+        // Calculate BMR (using Mifflin-St Jeor Equation for males)
+        bmr = (float) ((10.0 * weight) + (6.25 * height) - (5 * age) + 5);
 
-            // Calculate BMR (using Mifflin-St Jeor Equation for males)
-            bmr = (float) ((10.0 * weight) + (6.25 * height) - (5 * age) + 5);
-
-            // Activity multiplier
-            float multiplier = switch (activityLevel) {
-                case "Sedentary" -> 1.2f;
-                case "Lightly Active" -> 1.375f;
-                case "Moderately Active" -> 1.55f;
-                case "Very Active" -> 1.725f;
-                case "Extra Active" -> 1.9f;
-                default -> 1.0f;
-            };
-
-            // Calculate daily calorie goal
-            dailyGoal = bmr * multiplier;
-        }
+        // Activity multiplier
+        float multiplier = switch (activityLevel) {
+            case "Sedentary" -> 1.2f;
+            case "Lightly Active" -> 1.375f;
+            case "Moderately Active" -> 1.55f;
+            case "Very Active" -> 1.725f;
+            case "Extra Active" -> 1.9f;
+            default -> 1.0f;
+        };
+        // Calculate daily calorie goal
+        dailyGoal = bmr * multiplier;
     } catch (Exception e) {
         // Set an error message attribute to notify the user
         request.setAttribute("errorMessage", "Error loading user data. Please try again.");
@@ -378,7 +368,7 @@
         <p>Fine-tune your meal plan by adjusting calories up or down:</p>
         <div class="adjustment-controls">
             <button class="adjustment-button" onclick="adjustCalories(-100)">-100</button>
-            <span id="calorieAdjustment" class="adjustment-value">0</span>
+            <span id="calorieAdjustmentDisplay" class="adjustment-value">0</span>
             <button class="adjustment-button" onclick="adjustCalories(100)">+100</button>
             <span>Adjusted Daily Goal: <span id="adjustedGoal">Loading...</span> calories</span>
         </div>
@@ -582,7 +572,7 @@
     // Adjust calories
     function adjustCalories(amount) {
         calorieAdjustment += amount;
-        document.getElementById('calorieAdjustment').textContent = calorieAdjustment > 0 ? +${calorieAdjustment} : calorieAdjustment;
+        document.getElementById('calorieAdjustmentDisplay').textContent = calorieAdjustment > 0 ? +calorieAdjustment : calorieAdjustment;
 
         const adjustedGoal = dailyCalorieGoal + calorieAdjustment;
         document.getElementById('adjustedGoal').textContent = adjustedGoal;
