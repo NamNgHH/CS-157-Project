@@ -2,6 +2,7 @@
 <%@ page import="java.sql.*" %>
 <%@ page import="backend.DBUtil" %>
 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -25,6 +26,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             overflow: hidden;
         }
+
         .header {
             background-color: #4CAF50;
             color: white;
@@ -59,7 +61,7 @@
             font-weight: 600;
             color: #555;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
