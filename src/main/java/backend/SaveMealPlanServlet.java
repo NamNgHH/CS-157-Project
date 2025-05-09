@@ -4,50 +4,80 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import java.io.*;
+import java.util.*;
 import java.sql.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-@WebServlet("/saveMealPlan")
+@WebServlet("/SaveMealPlan")
 public class SaveMealPlanServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            BufferedReader reader = request.getReader();
-            StringBuilder json = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                json.append(line);
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String planId = request.getParameter("planId");
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("userID") == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        int userId = (int) session.getAttribute("userID");
+
+        // Simulated predefined plans, in reality this data should come from somewhere dynamic
+        Map<String, Map<String, List<Integer>>> predefinedPlans = Map.of(
+                "balanced", Map.of(
+                        "breakfast", List.of(1, 2),
+                        "lunch", List.of(3, 4),
+                        "dinner", List.of(5, 6, 7),
+                        "snack", List.of(8, 9)
+                ),
+                "lowCarb", Map.of(
+                        "breakfast", List.of(10, 11),
+                        "lunch", List.of(12, 13),
+                        "dinner", List.of(14, 15, 16),
+                        "snack", List.of(17, 18)
+                ),
+                "vegetarian", Map.of(
+                        "breakfast", List.of(19, 20),
+                        "lunch", List.of(21, 22),
+                        "dinner", List.of(23, 24),
+                        "snack", List.of(25, 26)
+                )
+        );
+
+        try (Connection conn = DBUtil.getConnection()) {
+            // Insert into `plans` table
+            String insertPlanSql = "INSERT INTO plans (user_id, plan_name) VALUES (?, ?)";
+            PreparedStatement planStmt = conn.prepareStatement(insertPlanSql, Statement.RETURN_GENERATED_KEYS);
+            planStmt.setInt(1, userId);
+            planStmt.setString(2, planId);
+            planStmt.executeUpdate();
+
+            ResultSet rs = planStmt.getGeneratedKeys();
+            int newPlanId = -1;
+            if (rs.next()) {
+                newPlanId = rs.getInt(1);
             }
 
-            JSONObject plan = new JSONObject(json.toString());
+            // Insert into `plan_meals`
+            String insertMealSql = "INSERT INTO plan_meals (plan_id, meal_time, food_id) VALUES (?, ?, ?)";
+            PreparedStatement mealStmt = conn.prepareStatement(insertMealSql);
 
-            Connection conn = DBUtil.getConnection();
-            String sql = "INSERT INTO MealPlan (DayOfWeek, MealType, FoodItem) VALUES (?, ?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-
-            for (String day : plan.keySet()) {
-                JSONObject meals = plan.getJSONObject(day);
-                for (String meal : meals.keySet()) {
-                    JSONArray foods = meals.getJSONArray(meal);
-                    for (int i = 0; i < foods.length(); i++) {
-                        String foodItem = foods.getString(i);
-                        stmt.setString(1, day);
-                        stmt.setString(2, meal);
-                        stmt.setString(3, foodItem);
-                        stmt.addBatch();
-                    }
+            Map<String, List<Integer>> meals = predefinedPlans.get(planId);
+            for (String mealTime : meals.keySet()) {
+                for (int foodId : meals.get(mealTime)) {
+                    mealStmt.setInt(1, newPlanId);
+                    mealStmt.setString(2, mealTime);
+                    mealStmt.setInt(3, foodId);
+                    mealStmt.addBatch();
                 }
             }
+            mealStmt.executeBatch();
 
-            stmt.executeBatch();
-            conn.close();
+            response.sendRedirect("diet_planner.jsp");
 
-            response.setStatus(HttpServletResponse.SC_OK);
-        } catch (Exception e) {
-            e.printStackTrace(); // already included
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("ERROR: " + e.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.sendRedirect("meal-plans.jsp?error=true");
         }
     }
 }

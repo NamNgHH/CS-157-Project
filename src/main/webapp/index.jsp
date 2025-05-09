@@ -147,7 +147,7 @@
 <div class="navbar">
     <a href="index.jsp" class="active">Home</a>
     <a href="meal-plans.jsp">Meal Plans</a>
-    <a href="diet_planner.html">Diet Planner</a>
+    <a href="diet_planner.jsp">Diet Planner</a>
     <span style="float:right; color:white; padding:14px 16px;">
         <% if (userName != null) { %>
             Current User: <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>
