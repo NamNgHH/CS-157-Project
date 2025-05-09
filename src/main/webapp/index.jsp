@@ -1,6 +1,17 @@
+<%@ page import="java.awt.*" %>
 <%@ page session="true" %>
+<%@ page import="backend.DBUtil" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.sql.PreparedStatement" %>
 <%
-    String userName = (String) session.getAttribute("userName");
+    int userID = (Integer) session.getAttribute("userID");
+    String sql = "SELECT name FROM users WHERE userID=?";
+    Connection conn = DBUtil.getConnection();
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setInt(1, userID);
+    ResultSet rs = stmt.executeQuery(); rs.next();
+    String userName = rs.getString("Name");
 %>
 
 <html>
