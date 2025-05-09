@@ -475,8 +475,8 @@
 
     // Global variables
     let selectedPlan = null;
-    let userBMR = bmr;
-    let dailyCalorieGoal = dailyGoal;
+    let userBMR = <%= bmr %>;
+    let dailyCalorieGoal = <%= dailyGoal %>;
     let calorieAdjustment = 0;
         
     // Activity multipliers
@@ -525,9 +525,8 @@
 
             let planHTML = `
     <div class="select-badge">Selected</div>
-    <h3>${plan.name} <span class="plan-calories">(${calorieGoal} calories)</span></h3>
-    <p>${plan.description}</p>
-`;
+    <h3 id ="planName">`+plan.name +`<span class="plan-calories">(`+ calorieGoal + `calories)</span></h3>
+    <p>`+ plan.description + `</p>`;
 
             // Generate each meal type
             for (const [mealType, mealItems] of Object.entries(plan.meals)) {
@@ -535,8 +534,8 @@
 
                 planHTML += `
     <div class="meal">
-        <h4>${mealType.charAt(0).toUpperCase() + mealType.slice(1)}
-            <span class="meal-type-calories">(${typeTotalCalories} cal)</span>
+        <h4>`+mealType.charAt(0).toUpperCase() + mealType.slice(1)+`
+            <span class="meal-type-calories">(`+typeTotalCalories+` cal)</span>
         </h4>
 `;
 
@@ -554,18 +553,18 @@
 
                     planHTML += `
     <div class="meal-item">
-        <span class="meal-item-name">${item.name}</span>
-        <span class="meal-item-weight">${adjustedAmount}g</span>
-        <span class="meal-item-calories">${itemCalories} cal</span>
+        <span class="meal-item-name">`+item.name+`</span>
+        <span class="meal-item-weight">`+adjustedAmount+`g</span>
+        <span class="meal-item-calories">`+itemCalories+` cal</span>
     </div>
 `;
           });
 
                 planHTML += `</div>`;
             }
-
             mealPlanDiv.innerHTML = planHTML;
             mealPlansContainer.appendChild(mealPlanDiv);
+
         }
     }
 
