@@ -131,7 +131,7 @@
     %>
 
 
-    <form method="post" action="registration">
+    <form method="POST" action="registration">
         <div class="form-group">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>

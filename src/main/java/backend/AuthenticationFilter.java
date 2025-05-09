@@ -12,7 +12,7 @@ public class AuthenticationFilter implements Filter {
 
     // Paths that can be accessed without authentication
     private static final String[] PUBLIC_PATHS = {
-            "/login", "/login.jsp", "/registration", "/registration.jsp", "/css/", "/js/", "/images/", "/favicon.ico", "/meals-plans.html"
+            "/login", "/login.jsp", "/registration", "/registration.jsp", "/css/", "/js/", "/images/", "/favicon.ico", "/meals-plans.jsp"
     };
 
     @Override

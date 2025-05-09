@@ -12,6 +12,7 @@ public class RegisterServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        System.out.println("RegisterServlet: doPost");
 
         // Get form parameters
         String name = request.getParameter("name");
@@ -26,12 +27,12 @@ public class RegisterServlet extends HttpServlet {
             weight = Float.parseFloat(request.getParameter("weight"));
             height = Float.parseFloat(request.getParameter("height"));
         } catch (NumberFormatException e) {
-            response.sendRedirect("register.jsp?error=true");
+            response.sendRedirect("registration.jsp?error=true");
             return;
         }
 
         if (isUsernameTaken(username)) {
-            response.sendRedirect("register.jsp?error=username_taken");
+            response.sendRedirect("registration.jsp?error=username_taken");
             return;
         }
 
@@ -53,19 +54,19 @@ public class RegisterServlet extends HttpServlet {
                     // If credential saving fails, we should delete the user entry
                     // to maintain database integrity
                     deleteUser(userID);
-                    response.sendRedirect("register.jsp?error=true");
+                    response.sendRedirect("registration.jsp?error=true");
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         } else {
             // User creation failed
-            response.sendRedirect("register.jsp?error=true");
+            response.sendRedirect("registration.jsp?error=true");
         }
     }
 
     private int registerUserInfo(String name, int age, float weight, float height, String activityLevel) throws SQLException {
-        String sql = "INSERT INTO users (name, age, weight, height, activity_level) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (name, age, weight, height, activityLevel) VALUES (?, ?, ?, ?, ?)";
         int newUserID = -1;
 
         try (Connection conn = DBUtil.getConnection();

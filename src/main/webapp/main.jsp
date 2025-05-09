@@ -106,8 +106,8 @@
 </head>
 <body>
 <div class="navbar">
-    <a href="index.html" class="active">Home</a>
-    <a href="meal-plans.html">Meal Plans</a>
+    <a href="index.jsp" class="active">Home</a>
+    <a href="meal-plans.jsp">Meal Plans</a>
 </div>
 
 <div class="header">

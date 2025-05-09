@@ -77,7 +77,7 @@
 <body>
 <div class="navbar">
   <a href="index.jsp">Home</a>
-  <a href="meal-plans.html" class="active">Meal Plans</a>
+  <a href="meal-plans.jsp" class="active">Meal Plans</a>
   <a href="diet_planner.html">Diet Planner</a>
   <span style="float:right; color:white; padding:14px 16px;">
         <% if (userName != null) { %>
