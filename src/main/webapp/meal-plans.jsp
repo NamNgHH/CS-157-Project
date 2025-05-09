@@ -4,20 +4,52 @@
 <%@ page import="java.sql.ResultSet" %>
 <%@ page import="java.sql.PreparedStatement" %>
 <%
-  String userName = null;
-  try {
-    int userID = (Integer) session.getAttribute("userID");
-    String sql = "SELECT name FROM users WHERE userID=?";
-    Connection conn = DBUtil.getConnection();
-    PreparedStatement stmt = conn.prepareStatement(sql);
-    stmt.setInt(1, userID);
-    ResultSet rs = stmt.executeQuery();
-    rs.next();
-    userName = rs.getString("Name");
-  } catch (Exception e) {
-    response.sendRedirect("login.jsp");
-    return;
-  }
+    String userName = null;
+    int age = 0;
+    float weight = 0;
+    float height = 0;
+    String activityLevel = null;
+    float bmr = 0;
+    float dailyGoal = 0;
+
+    try {
+        int userID = (Integer) session.getAttribute("userID");
+        String sql = "SELECT * FROM users WHERE userID=?";
+        Connection conn = DBUtil.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, userID);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            userName = rs.getString("name");
+            age = rs.getInt("age");
+            weight = rs.getFloat("weight");
+            height = rs.getFloat("height");
+            activityLevel = rs.getString("activityLevel");
+
+            // Calculate BMR (using Mifflin-St Jeor Equation for males)
+            bmr = (float) ((10.0 * weight) + (6.25 * height) - (5 * age) + 5);
+
+            // Activity multiplier
+            float multiplier = switch (activityLevel) {
+                case "Sedentary" -> 1.2f;
+                case "Lightly Active" -> 1.375f;
+                case "Moderately Active" -> 1.55f;
+                case "Very Active" -> 1.725f;
+                case "Extra Active" -> 1.9f;
+                default -> 1.0f;
+            };
+
+            // Calculate daily calorie goal
+            dailyGoal = bmr * multiplier;
+        }
+    } catch (Exception e) {
+        // Set an error message attribute to notify the user
+        request.setAttribute("errorMessage", "Error loading user data. Please try again.");
+        // Forward the request to the login page with the error message
+        RequestDispatcher dispatcher = request.getRequestDispatcher("login.jsp");
+        dispatcher.forward(request, response);
+        return;
+    }
 %>
 <!DOCTYPE html>
 <head lang="en">
@@ -318,17 +350,25 @@
         <div class="user-stats">
             <div class="user-stat">
                 <h4>Name</h4>
-                <p id="userName"><% if (userName != null) { %>
-                  <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>
-                  <% } %></p>
+                <p id="userName">
+                    <% if (userName != null && !userName.isEmpty()) { %>
+                    <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1).toLowerCase() %>
+                    <% } else { %>
+                    Unknown
+                    <% } %>
+                </p>
             </div>
             <div class="user-stat">
                 <h4>BMR</h4>
-                <p id="bmrValue">Loading...</p>
+                <p id="bmrValue">
+                    <%= String.format("%.2f", bmr) %> kcal/day
+                </p>
             </div>
             <div class="user-stat">
                 <h4>Daily Goal</h4>
-                <p id="dailyGoalValue">Loading...</p>
+                <p id="dailyGoalValue">
+                    <%= String.format("%.2f", dailyGoal) %> kcal/day
+                </p>
             </div>
         </div>
     </div>
@@ -361,7 +401,16 @@
     <p><a href="index.html">Return to food search</a> to find nutritional information for specific foods.</p>
 </div>
 
-<script>
+    <script>
+
+    var userName = "<%= userName %>";
+    var age = <%= age %>;
+    var weight = <%= weight %>;
+    var height = <%= height %>;
+    var activityLevel = "<%= activityLevel %>";
+    var bmr = <%= bmr %>;
+    var dailyGoal = <%= dailyGoal %>;
+
     // Define meal plan templates with calorie densities (calories per 100g)
     const mealPlans = {
         balanced: {
@@ -436,11 +485,10 @@
 
     // Global variables
     let selectedPlan = null;
-    let userBMR = 0;
-    let dailyCalorieGoal = 0;
+    let userBMR = bmr;
+    let dailyCalorieGoal = dailyGoal;
     let calorieAdjustment = 0;
-    let userName = "";
-
+        
     // Activity multipliers
     const activityMultipliers = {
         "Sedentary": 1.2,
@@ -485,22 +533,22 @@
                 toggleSelection(this, planId);
             };
 
-            let planHTML =
-        <div class="select-badge">Selected</div>
-        <h3>${plan.name} <span class="plan-calories">(${calorieGoal} calories)</span></h3>
-        <p>${plan.description}</p>
-      ;
+            let planHTML = `
+    <div class="select-badge">Selected</div>
+    <h3>${plan.name} <span class="plan-calories">(${calorieGoal} calories)</span></h3>
+    <p>${plan.description}</p>
+`;
 
             // Generate each meal type
             for (const [mealType, mealItems] of Object.entries(plan.meals)) {
                 const typeTotalCalories = mealCalories[mealType];
 
-                planHTML +=
-          <div class="meal">
-            <h4>${mealType.charAt(0).toUpperCase() + mealType.slice(1)}
-              <span class="meal-type-calories">(${typeTotalCalories} cal)</span>
-            </h4>
-        ;
+                planHTML += `
+    <div class="meal">
+        <h4>${mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+            <span class="meal-type-calories">(${typeTotalCalories} cal)</span>
+        </h4>
+`;
 
                 // Calculate scaling factor for this meal type
                 const baseCalories = mealItems.reduce((sum, item) => {
@@ -514,16 +562,16 @@
                     const adjustedAmount = Math.round(item.baseAmount * scalingFactor);
                     const itemCalories = Math.round(item.calorieDensity * adjustedAmount / 100);
 
-                    planHTML +=
-            <div class="meal-item">
-              <span class="meal-item-name">${item.name}</span>
-              <span class="meal-item-weight">${adjustedAmount}g</span>
-              <span class="meal-item-calories">${itemCalories} cal</span>
-            </div>
-          ;
-                });
+                    planHTML += `
+    <div class="meal-item">
+        <span class="meal-item-name">${item.name}</span>
+        <span class="meal-item-weight">${adjustedAmount}g</span>
+        <span class="meal-item-calories">${itemCalories} cal</span>
+    </div>
+`;
+          });
 
-                planHTML += </div>;
+                planHTML += `</div>`;
             }
 
             mealPlanDiv.innerHTML = planHTML;
@@ -591,89 +639,8 @@
             alert("Error saving meal plan.");
         });
     }
+generateMealPlans(dailyCalorieGoal);
 
-    // Fetch user data from database
-    function fetchUserData() {
-        // Make an AJAX call to a servlet that will use UserDAO.getUser(userId)
-        fetch("GetUserData", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                return response.json();
-            })
-            .then(userData => {
-                // Set user data
-                userName = "userData.name";
-
-                // Calculate BMR and TDEE
-                userBMR = Math.round(calculateBMR(userData.weight, userData.height, userData.age));
-                dailyCalorieGoal = Math.round(userBMR * activityMultipliers[userData.activityLevel]);
-
-                // Update UI
-                document.getElementById('userName').textContent = userName;
-                document.getElementById('bmrValue').textContent = userBMR +  " calories";
-                document.getElementById('dailyGoalValue').textContent = dailyCalorieGoal + " calories";
-                document.getElementById('adjustedGoal').textContent = dailyCalorieGoal;
-
-                // Generate meal plans
-                generateMealPlans(dailyCalorieGoal);
-
-                // Check for previously selected meal plan
-                const savedPlan = localStorage.getItem('selectedMealPlan');
-                if (savedPlan) {
-                    setTimeout(() => {
-                        const plans = document.querySelectorAll('.meal-plan');
-                        let index = 0;
-                        if (savedPlan === 'lowCarb') index = 1;
-                        else if (savedPlan === 'vegetarian') index = 2;
-
-                        if (plans[index]) {
-                            plans[index].classList.add('selected');
-                            selectedPlan = savedPlan;
-                            document.getElementById('saveButton').disabled = false;
-                        }
-                    }, 100);
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching user data:", error);
-                // Display error message to the user
-                document.getElementById('userName').textContent = "Error loading user data";
-                document.getElementById('bmrValue').textContent = "N/A";
-                document.getElementById('dailyGoalValue').textContent = "N/A";
-                document.getElementById('adjustedGoal').textContent = "N/A";
-                alert("Failed to load user data. Please try refreshing the page.");
-            });
-
-        // Check for previously selected meal plan
-        const savedPlan = localStorage.getItem('selectedMealPlan');
-        if (savedPlan) {
-            setTimeout(() => {
-                const plans = document.querySelectorAll('.meal-plan');
-                let index = 0;
-                if (savedPlan === 'lowCarb') index = 1;
-                else if (savedPlan === 'vegetarian') index = 2;
-
-                if (plans[index]) {
-                    plans[index].classList.add('selected');
-                    selectedPlan = savedPlan;
-                    document.getElementById('saveButton').disabled = false;
-                }
-            }, 100);
-        }
-    }
-
-    // Initialize the page
-    window.onload = function () {
-        // Fetch user data from the database
-        fetchUserData();
-    };
 </script>
 </body>
 </html>
