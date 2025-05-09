@@ -1,6 +1,23 @@
 <%@ page session="true" %>
+<%@ page import="backend.DBUtil" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.sql.PreparedStatement" %>
 <%
-    String userName = (String) session.getAttribute("userName");
+  String userName = null;
+  try {
+    int userID = (Integer) session.getAttribute("userID");
+    String sql = "SELECT name FROM users WHERE userID=?";
+    Connection conn = DBUtil.getConnection();
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setInt(1, userID);
+    ResultSet rs = stmt.executeQuery();
+    rs.next();
+    userName = rs.getString("Name");
+  } catch (Exception e) {
+    response.sendRedirect("login.jsp");
+    return;
+  }
 %>
 <!DOCTYPE html>
 <head lang="en">
@@ -301,7 +318,9 @@
         <div class="user-stats">
             <div class="user-stat">
                 <h4>Name</h4>
-                <p id="userName">Loading...</p>
+                <p id="userName"><% if (userName != null) { %>
+                  <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>
+                  <% } %></p>
             </div>
             <div class="user-stat">
                 <h4>BMR</h4>
