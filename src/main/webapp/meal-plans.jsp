@@ -391,7 +391,7 @@
     <p><a href="index.html">Return to food search</a> to find nutritional information for specific foods.</p>
 </div>
 
-    <script>
+<script>
 
     var userName = "<%= userName %>";
     var age = <%= age %>;
@@ -478,7 +478,7 @@
     let userBMR = <%= bmr %>;
     let dailyCalorieGoal = <%= dailyGoal %>;
     let calorieAdjustment = 0;
-        
+
     // Activity multipliers
     const activityMultipliers = {
         "Sedentary": 1.2,
@@ -558,7 +558,7 @@
         <span class="meal-item-calories">`+itemCalories+` cal</span>
     </div>
 `;
-          });
+                });
 
                 planHTML += `</div>`;
             }
@@ -611,15 +611,31 @@
             return;
         }
 
-        const formData = new FormData();
-        formData.append("planId", selectedPlan);
+        const calorieGoal = dailyCalorieGoal + calorieAdjustment;
+
+        // Recalculate per-meal calories
+        const mealCalories = {
+            breakfast: Math.round(calorieGoal * mealDistribution.breakfast),
+            lunch: Math.round(calorieGoal * mealDistribution.lunch),
+            dinner: Math.round(calorieGoal * mealDistribution.dinner),
+            snacks: Math.round(calorieGoal * mealDistribution.snacks)
+        };
+
+        const payload = {
+            planName: selectedPlan,
+            planName: mealPlans[selectedPlan].name,
+            calories: mealCalories
+        };
 
         fetch("SaveMealPlan", {
             method: "POST",
-            body: formData
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
         }).then(response => {
             if (response.redirected) {
-                window.location.href = response.url; // Redirect to diet_planner.jsp
+                window.location.href = response.url;
             } else {
                 alert("Failed to save meal plan.");
             }
@@ -628,7 +644,7 @@
             alert("Error saving meal plan.");
         });
     }
-generateMealPlans(dailyCalorieGoal);
+    generateMealPlans(dailyCalorieGoal);
 </script>
 </body>
 </html>

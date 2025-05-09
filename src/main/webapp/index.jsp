@@ -2,6 +2,14 @@
 <%@ page session="true" %>
 <%@ page import="backend.UserDAO" %>
 <%@ page import="backend.User" %>
+<%@ page import="java.util.List" %>
+<%@ page import="backend.PlanDAO" %>
+<%@ page import="backend.PlanDAO.MealPlan" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="backend.DBUtil" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
 <%
     String userName = null;
     try {
@@ -13,7 +21,26 @@
         response.sendRedirect("login.jsp");
         return;
     }
+    List<MealPlan> savedPlans = new ArrayList<>();
+    try {
+        int userID = (Integer) session.getAttribute("userID");
+        PlanDAO planDAO = new PlanDAO();
+        savedPlans = planDAO.getUserMealPlans(userID);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    int userID = -1;
+    try {
+        userID = (Integer) session.getAttribute("userID");
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUser(userID);
+        userName = user.getName();
+    } catch (Exception e) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
 %>
+
 
 <html>
 <head>
@@ -50,12 +77,18 @@
         }
         .header {
             display: flex;
-            align-items: center;
+            justify-content: space-between;
+            align-items: flex-start;
             background-color: #fff;
-            padding: 15px;
+            padding: 30px;
+            min-height: 250px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
         }
         .header img {
             margin-right: 20px;
@@ -65,6 +98,16 @@
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .saved-plans-box {
+            width: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 10px 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            font-size: 14px;
         }
         .search-results {
             margin-top: 20px;
@@ -164,17 +207,46 @@
             Current User: <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>
         <% } %>
     </span>
-
 </div>
 
 <div class="header">
-    <img src="./images/download.gif" alt="Tomcat Logo">
-    <div>
-        <h1>Food Data Search Application</h1>
-        <p style="font-size: 1.2em; font-weight: bold;">
-            Hello, <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>!
-        </p>
-        <p>This application uses the USDA Food Data Central API to search for food information.</p>
+    <div class="header-content">
+        <img src="./images/download.gif" alt="Tomcat Logo">
+        <div>
+            <h1>Food Data Search Application</h1>
+            <p style="font-size: 1.2em; font-weight: bold;">
+                Hello, <%= Character.toUpperCase(userName.charAt(0)) + userName.substring(1) %>!
+            </p>
+            <p>This application uses the USDA Food Data Central API to search for food information.</p>
+        </div>
+    </div>
+    <div class="saved-plans-box">
+        <h3>Your Saved Meal Plans</h3>
+        <ul>
+            <%
+                Connection conn = DBUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT p.plan_name, c.breakfast_calories, c.lunch_calories, c.dinner_calories, c.snack_calories " +
+                                "FROM plans p JOIN calorie_plans c ON p.plan_id = c.plan_id WHERE p.user_id = ?"
+                );
+                ps.setInt(1, userID);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+            %>
+            <li>
+                <strong><%= rs.getString("plan_name").replaceAll("_", " ") %></strong><br>
+                Breakfast: <%= rs.getInt("breakfast_calories") %> cal<br>
+                Lunch: <%= rs.getInt("lunch_calories") %> cal<br>
+                Dinner: <%= rs.getInt("dinner_calories") %> cal<br>
+                Snacks: <%= rs.getInt("snack_calories") %> cal<br><br>
+            </li>
+            <%
+                }
+                rs.close();
+                ps.close();
+                conn.close();
+            %>
+        </ul>
     </div>
 </div>
 
