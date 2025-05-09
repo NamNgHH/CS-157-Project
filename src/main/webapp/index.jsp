@@ -1,20 +1,14 @@
 <%@ page import="java.awt.*" %>
 <%@ page session="true" %>
-<%@ page import="backend.DBUtil" %>
-<%@ page import="java.sql.Connection" %>
-<%@ page import="java.sql.ResultSet" %>
-<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="backend.UserDAO" %>
+<%@ page import="backend.User" %>
 <%
     String userName = null;
     try {
         int userID = (Integer) session.getAttribute("userID");
-        String sql = "SELECT name FROM users WHERE userID=?";
-        Connection conn = DBUtil.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setInt(1, userID);
-        ResultSet rs = stmt.executeQuery();
-        rs.next();
-        userName = rs.getString("Name");
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUser(userID);
+        userName = user.getName();
     } catch (Exception e) {
         response.sendRedirect("login.jsp");
         return;
