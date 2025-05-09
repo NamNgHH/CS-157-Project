@@ -39,6 +39,7 @@
         response.sendRedirect("login.jsp");
         return;
     }
+
 %>
 
 
@@ -92,6 +93,10 @@
         }
         .header img {
             margin-right: 20px;
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
         }
         .content {
             background-color: #fff;
@@ -101,7 +106,7 @@
         }
         .saved-plans-box {
             width: 500px;
-            max-height: 600px;
+            max-height: 400px;
             overflow-y: auto;
             padding: 10px 20px;
             background-color: #f9f9f9;
@@ -222,31 +227,50 @@
     </div>
     <div class="saved-plans-box">
         <h3>Your Saved Meal Plans</h3>
-        <ul>
-            <%
-                Connection conn = DBUtil.getConnection();
-                PreparedStatement ps = conn.prepareStatement(
-                        "SELECT p.plan_name, c.breakfast_calories, c.lunch_calories, c.dinner_calories, c.snack_calories " +
-                                "FROM plans p JOIN calorie_plans c ON p.plan_id = c.plan_id WHERE p.user_id = ?"
-                );
-                ps.setInt(1, userID);
-                ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-            %>
-            <li>
-                <strong><%= rs.getString("plan_name").replaceAll("_", " ") %></strong><br>
-                Breakfast: <%= rs.getInt("breakfast_calories") %> cal<br>
-                Lunch: <%= rs.getInt("lunch_calories") %> cal<br>
-                Dinner: <%= rs.getInt("dinner_calories") %> cal<br>
-                Snacks: <%= rs.getInt("snack_calories") %> cal<br><br>
-            </li>
-            <%
-                }
-                rs.close();
-                ps.close();
-                conn.close();
-            %>
-        </ul>
+        <%
+            Connection conn = DBUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT p.plan_id, p.plan_name, f.meal_time, f.name, f.calories " +
+                            "FROM plans p JOIN food f ON p.plan_id = f.plan_id " +
+                            "WHERE p.user_id = ? " +
+                            "ORDER BY p.plan_id, FIELD(f.meal_time, 'breakfast', 'lunch', 'dinner', 'snacks')"
+            );
+            ps.setInt(1, userID);
+            ResultSet rs = ps.executeQuery();
+
+            int currentPlanId = -1;
+            String currentMeal = "";
+
+            while (rs.next()) {
+                int planId = rs.getInt("plan_id");
+                String planName = rs.getString("plan_name");
+                String mealTime = rs.getString("meal_time");
+                String foodName = rs.getString("name");
+                int calories = rs.getInt("calories");
+
+                if (planId != currentPlanId) {
+                    if (currentPlanId != -1) { %><br><% }
+    %>
+        <h4 style="margin-top: 20px;"><%= planName.replaceAll("_", " ") %></h4>
+        <%
+                currentPlanId = planId;
+                currentMeal = "";
+            }
+
+            if (!mealTime.equals(currentMeal)) {
+        %>
+        <strong><%= mealTime.substring(0,1).toUpperCase() + mealTime.substring(1) %></strong><br>
+        <%
+                currentMeal = mealTime;
+            }
+        %>
+        &bull; <%= foodName %> - <%= calories %> cal<br>
+        <%
+            }
+            rs.close();
+            ps.close();
+            conn.close();
+        %>
     </div>
 </div>
 

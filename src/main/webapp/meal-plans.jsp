@@ -68,17 +68,14 @@
             text-decoration: none;
             font-weight: bold;
         }
-
         .navbar a:hover {
             background-color: #ddd;
             color: black;
         }
-
         .navbar a.active {
             background-color: #4CAF50;
             color: white;
         }
-
         .header {
             display: flex;
             align-items: center;
@@ -88,11 +85,13 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-
         .header img {
             margin-right: 20px;
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
         }
-
         .content {
             background-color: #fff;
             padding: 20px;
@@ -100,7 +99,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-
         .user-info {
             background-color: #e8f5e9;
             padding: 15px;
@@ -388,7 +386,7 @@
 
     <div id="notification" class="notification">Meal plan saved successfully!</div>
 
-    <p><a href="index.html">Return to food search</a> to find nutritional information for specific foods.</p>
+    <p><a href="index.jsp">Return to food search</a> to find nutritional information for specific foods.</p>
 </div>
 
 <script>
@@ -622,9 +620,9 @@
         };
 
         const payload = {
-            planName: selectedPlan,
             planName: mealPlans[selectedPlan].name,
-            calories: mealCalories
+            calories: mealCalories,
+            meals: mealPlans[selectedPlan].meals
         };
 
         fetch("SaveMealPlan", {
