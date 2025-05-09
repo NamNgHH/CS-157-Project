@@ -640,7 +640,6 @@
         });
     }
 generateMealPlans(dailyCalorieGoal);
-
 </script>
 </body>
 </html>
