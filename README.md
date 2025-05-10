@@ -36,7 +36,7 @@ cd CS-157-Project
     - Run the provided script to set up the database tables:
 ``` sql
      -- In your MySQL client:
-     SOURCE path/to/fitness_db.sql;
+     SOURCE path/to/create_schema.sql;
 ```
 1. **Update Database Connection Settings:**
     - Ensure your database credentials (host, username, password) in the class match your local setup. `DBUtil`
