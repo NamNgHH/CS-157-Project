@@ -66,7 +66,7 @@ This will compile your project and produce a `.war` file in the `target/` direct
 
 ### 7. **Using the Application**
 - **Search Foods:** Use the search bar on the homepage to look up foods and their nutritional info from the USDA API.
-- **Meal Plans:** Create, view, and manage your meal plans and track nutritional data.
+- **Meal Plans:** Create, view, and manage personalized preset meal plans and track nutritional data.
 
 ## Troubleshooting
 - **Port Issues:** If Tomcat’s 8080 port is in use, change it in Tomcat’s `server.xml` or free the port.
