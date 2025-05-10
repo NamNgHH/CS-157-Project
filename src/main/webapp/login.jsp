@@ -117,12 +117,12 @@
                 String error = request.getParameter("error");
                 if (error != null) {
                     if (error.equals("true")) {
-                        //out.println("<p class='error'>Invalid user ID or password!</p>");
+                    %><p class='error'>Invalid user ID or password!</p><%
                     } else if (error.equals("session")) {
-                        // out.println("<p class='error'>Your session has expired. Please login again.</p>");
+                    %><p class='error'>Your session has expired. Please login again.</p><%
                     } else if (error.equals("unauthorized")) {
-                        //out.println("<p class='error'>Please login to access this page.</p>");
-                    }
+                    %><p class='error'>Please login to access this page.</p><%
+                }
                 }
 
                 String success = request.getParameter("success");
